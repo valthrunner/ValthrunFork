@@ -49,10 +49,12 @@ define_schema! {
         Basic = 0,
         T = 1,
         CollectionOfT = 2,
-        TT = 3,
-        I = 4,
-        Unknown = 5,
-        None = 6,
+        TF = 3,
+        TT = 4,
+        TTF = 5,
+        I = 6,
+        Unknown = 7,
+        None = 8,
     }
 
     pub enum TypeCategory : u8 {
@@ -70,10 +72,10 @@ define_schema! {
         pub scopes: CUtlVector<Ptr<CSchemaSystemTypeScope>> = 0x190,
     }
 
-    pub struct CSchemaSystemTypeScope[0x2F00] {
+    pub struct CSchemaSystemTypeScope[0x2F30] {
         pub scope_name: FixedCString<0x100> = 0x08,
-        pub class_bindings: CUtlTSHash<u64, Ptr<CSchemaClassBinding>> = 0x0588,
-        pub enum_bindings: CUtlTSHash<u64, Ptr<CSchemaEnumBinding>> = 0x2DD0,
+        pub class_bindings: CUtlTSHash<u64, Ptr<CSchemaClassBinding>> = 0x05B8,
+        pub enum_bindings: CUtlTSHash<u64, Ptr<CSchemaEnumBinding>> = 0x2E00,
     }
 
     pub struct CSchemaType[0x20] {
@@ -285,7 +287,9 @@ fn parse_type(cs2: &CS2Handle, schema_type: &CSchemaType) -> anyhow::Result<Opti
                 }
                 AtomicCategory::CollectionOfT => {
                     let value = schema_type.var_type()?.read_string()?;
-                    if !value.starts_with("CUtlVector<") {
+                    if !value.starts_with("CUtlVector<")
+                        || !value.starts_with("C_NetworkUtlVectorBase<")
+                    {
                         return Ok(None);
                     }
 
